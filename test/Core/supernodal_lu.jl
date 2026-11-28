@@ -179,9 +179,11 @@ end
     F = SNLU.snlu(A; eps_pivot = 1.0e-4, matching = false)
     @test relres(A, b, SNLU.solve(F, b; refine = 10)) <= 1.0e-14
 
-    x = similar(b)
-    SNLU.solve!(x, F, b; refine = 3)
-    @test (@allocated SNLU.solve!(x, F, b; refine = 3)) == 0
+    function refined_solve_allocations(x, F, b)
+        SNLU.solve!(x, F, b; refine = 3)
+        return @allocated SNLU.solve!(x, F, b; refine = 3)
+    end
+    @test refined_solve_allocations(similar(b), F, b) == 0
 end
 
 @testset "a stalled refinement cannot hide inaccurate rows" begin
